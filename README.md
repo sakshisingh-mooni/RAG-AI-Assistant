@@ -6,11 +6,12 @@ A production-style **Retrieval-Augmented Generation (RAG)** system that lets use
 
 ## 📸 Demo
 
-### Upload & Ask Questions
+### Basic RAG — Upload & Ask Questions
 ![Demo 1](assets/demo.png)
 
-### Translated Response Output
+### Multilingual Voice — Ask in Hindi, Get Answer in Hindi
 ![Demo 2](assets/demo2.png)
+
 ---
 
 ## 🏗️ Architecture
@@ -28,7 +29,7 @@ PDF Upload
                  ▼
 ┌─────────────────────────────────┐
 │  Embedding + Vector Storage     │
-│  Google Generative AI Embeddings│
+│  HuggingFace all-MiniLM-L6-v2  │
 │  → Pinecone Vector Database     │
 └────────────────┬────────────────┘
                  │
@@ -46,7 +47,7 @@ PDF Upload
                  │
                  ▼
 ┌─────────────────────────────────┐
-│  Gemini 2.0 Flash (LLM)         │
+│  Groq LLaMA 3.3-70B (LLM)      │
 │  + Custom Prompt Template       │
 │  + Hallucination Guard          │
 └────────────────┬────────────────┘
@@ -63,13 +64,14 @@ PDF Upload
 
 | Feature | Implementation |
 |---|---|
-| **RAG Pipeline** | LangChain + Pinecone vector store + Gemini embeddings |
+| **RAG Pipeline** | LangChain + Pinecone vector store + HuggingFace embeddings |
 | **Anti-hallucination** | Custom prompt instructs LLM to say "not in document" if answer absent |
 | **MultiQueryRetriever** | Generates multiple query reformulations to improve retrieval recall |
 | **Voice Input** | SpeechRecognition + PyAudio mic capture |
 | **Voice Output** | gTTS text-to-speech in user's language |
 | **10 Indian Languages** | Hindi, Telugu, Tamil, Kannada, Marathi, Gujarati, Bengali, Punjabi, Malayalam, English |
 | **Translation pipeline** | deep-translator: user lang → EN for retrieval → user lang for answer |
+| **No quota limits** | HuggingFace embeddings run locally — no API key, no rate limits |
 
 ---
 
@@ -77,8 +79,8 @@ PDF Upload
 
 | Layer | Technology |
 |---|---|
-| LLM | Google Gemini 2.0 Flash |
-| Embeddings | Google Generative AI Embeddings |
+| LLM | Groq (LLaMA 3.3-70B Versatile) — free tier |
+| Embeddings | HuggingFace all-MiniLM-L6-v2 — runs locally |
 | Vector DB | Pinecone |
 | Framework | LangChain (langchain-community, langchain-core) |
 | Translation | deep-translator (GoogleTranslator) |
@@ -91,12 +93,15 @@ PDF Upload
 
 ```
 ├── streamlit_app.py              # Version 1 — Basic text RAG chatbot
-├── streamlit_app_voice.py       # Version 2 — RAG + voice input/output
-├── streamlit_app_translator.py  # Version 3 — RAG + voice + 10 languages
+├── streamlit_app_voice.py        # Version 2 — RAG + voice input/output
+├── streamlit_app_translator.py   # Version 3 — RAG + voice + 10 languages
 ├── RAG_GEMINI_PINECONE_PDF.ipynb # Core RAG pipeline notebook
 ├── pyaudio_deep_translator.ipynb # Voice + translation experiments
 ├── requirements.txt
-└── .env                         # API keys (not committed)
+├── .gitignore
+└── assets/
+    ├── demo.png                  # Basic chatbot screenshot
+    └── demo2.png                 # Multilingual voice screenshot
 ```
 
 ---
@@ -116,7 +121,7 @@ pip install -r requirements.txt
 
 ### 3. Set up `.env`
 ```
-GEMINI_API_KEY=your_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
 PINECONE_API_KEY=your_pinecone_api_key
 ```
 
@@ -139,10 +144,11 @@ streamlit run streamlit_app_translator.py
 
 ---
 
-## 🔑 API Keys
+## 🔑 API Keys (Both Free)
 
-- **Gemini**: [aistudio.google.com]
-- **Pinecone**: [pinecone.io]
+- **Groq**: [console.groq.com](https://console.groq.com) — 14,400 requests/day free
+- **Pinecone**: [pinecone.io](https://pinecone.io) — free starter tier
+- **HuggingFace embeddings** — no API key needed, runs locally
 
 ---
 
@@ -155,3 +161,15 @@ Standard LLMs answer from training data — they cannot access your document and
 3. Passing those chunks as context to the LLM with an explicit instruction: *"Answer only from this context. If the answer isn't here, say so."*
 
 This grounds every response in the actual document content.
+
+---
+
+## 🔄 Tech Decisions Made During Development
+
+| Problem | Solution |
+|---|---|
+| Gemini embedding quota exhausted (100 req/min free tier) | Switched to HuggingFace all-MiniLM-L6-v2 — runs locally, zero quota |
+| Gemini LLM quota exhausted | Switched to Groq LLaMA 3.3-70B — 14,400 req/day free |
+| pinecone-client vs pinecone package conflict | Uninstalled pinecone-client, installed pinecone>=5.0.0 |
+| Deprecated langchain imports | Migrated to langchain-community, langchain-core, langchain-classic |
+| Safety settings API change in langchain-google-genai 4.x | Replaced enum objects with plain string keys |
