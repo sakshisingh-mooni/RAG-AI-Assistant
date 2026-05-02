@@ -6,8 +6,11 @@ A production-style **Retrieval-Augmented Generation (RAG)** system that lets use
 
 ## 📸 Demo
 
-> Upload a PDF → Ask in Hindi/Telugu/Tamil/English → Get a spoken, translated answer
+### Upload & Ask Questions
+![Demo 1](assets/demo.png)
 
+### Translated Response Output
+![Demo 2](assets/demo2.png)
 ---
 
 ## 🏗️ Architecture
