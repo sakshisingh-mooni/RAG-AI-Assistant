@@ -1,3 +1,13 @@
+---
+title: RAG AI Assistant
+emoji: 🤖
+colorFrom: purple
+colorTo: blue
+sdk: streamlit
+app_file: app.py
+pinned: false
+---
+
 # 📄 RAG AI Assistant — Multilingual Voice-Enabled PDF Chatbot
 
 A production-style **Retrieval-Augmented Generation (RAG)** system that lets users upload any PDF and ask questions about it — in their native Indian language, via voice or text — and receive spoken answers grounded strictly in the document.
