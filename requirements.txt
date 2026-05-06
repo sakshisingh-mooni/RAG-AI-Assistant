@@ -12,3 +12,4 @@ pypdf>=4.0.0
 speechrecognition>=3.10.0
 gtts>=2.5.0
 deep-translator>=1.11.0
+sentence-transformers>=2.2.0
