@@ -28,3 +28,4 @@ budget_speech.pdf
 # OS
 .DS_Store
 Thumbs.db
+"sample_data/*.pdf" 
