@@ -14,13 +14,15 @@ A production-style **Retrieval-Augmented Generation (RAG)** system that lets use
 
 ---
 
+🚀 **Live Demo**: [Try it here](https://huggingface.co/spaces/Sakshisingh2710/RAG-AI-Assistant)
+
 ## 📸 Demo
 
 ### Basic RAG — Upload & Ask Questions
-![Demo 1](assets/demo.png)
+![Demo 1](assets/demo1.png)
 
 ### Multilingual Voice — Ask in Hindi, Get Answer in Hindi
-![Demo 2](assets/demo2.png)
+![Demo 2](assets/demo_2.png)
 
 ---
 
