@@ -1,39 +1,33 @@
-# ── Core LangChain stack ──────────────────────────────────────────────────────
-# Versions verified from PyPI on May 2026.
-# All packages require Python >=3.10.
-langchain>=1.2.18,<2.0.0
-langchain-core>=1.4.0,<2.0.0
-langchain-community>=0.4.1,<1.0.0       # PyPDFLoader, PyMuPDFLoader live here
-langchain-classic>=1.0.7,<2.0.0         # MultiQueryRetriever moved here in langchain v1
-langchain-pinecone>=0.2.0,<1.0.0
-langchain-huggingface>=1.2.0,<2.0.0
-langchain-groq>=0.3.0,<1.0.0            # latest as of Jan 2026
-langchain-text-splitters>=1.1.2,<2.0.0
+# Core LangChain stack
+langchain==0.3.25
+langchain-core==0.3.58
+langchain-community==0.3.24
+langchain-pinecone==0.2.0
+langchain-huggingface==0.1.2
+langchain-groq==0.3.2
+langchain-text-splitters==0.3.8
 
-# ── Vector DB ─────────────────────────────────────────────────────────────────
-pinecone>=5.0.0,<10.0.0      # v5→v9: pc.Index(name) and describe_index_stats().namespaces unchanged
+# Vector DB
+pinecone>=5.0.0,<10.0.0
 
-# ── LLM inference ─────────────────────────────────────────────────────────────
+# LLM inference
 groq>=0.9.0
-openai>=1.30.0,<2.0.0       # used in evaluate_pipeline for GT generation via Groq
 
-# ── Embeddings (local — no API key needed) ────────────────────────────────────
-sentence-transformers>=3.0.0,<4.0.0  # local embeddings — no API key needed
+# Embeddings
+sentence-transformers>=3.0.0,<4.0.0
 
-# ── PDF loading ───────────────────────────────────────────────────────────────
-pymupdf>=1.24.0,<2.0.0  # PyMuPDFLoader: layout-aware, handles multi-column PDFs
+# PDF loading
+pypdf>=4.0.0
 
-# ── Translation + Voice ───────────────────────────────────────────────────────
+# Translation + Voice
 deep-translator>=1.11.0
 gTTS>=2.5.0
 SpeechRecognition>=3.10.0
-PyAudio>=0.2.14          # requires portaudio system package — see README and packages.txt
+PyAudio>=0.2.14
 
-# ── Evaluation ────────────────────────────────────────────────────────────────
+# Evaluation
 ragas>=0.4.3,<0.5.0
-datasets>=2.18.0         # ragas dependency
 
-# ── App ───────────────────────────────────────────────────────────────────────
+# App
 streamlit>=1.35.0
 python-dotenv>=1.0.0
-pandas>=2.0.0            # used in evaluate_pipeline for results display
