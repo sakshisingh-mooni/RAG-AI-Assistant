@@ -16,7 +16,20 @@ Public API
 
     get_doc_hash(file_bytes) -> str
         MD5 8-char namespace key for Pinecone deduplication.
-        Not used for security — deduplication only.
+        Not used for security — collision probability is negligible for this
+        deduplication-only use case. SHA-256 would be stronger but overkill here.
+
+Design notes
+------------
+- MultiQueryRetriever generates 3–5 sub-queries per user query.
+  At cfg.retriever_k=5 that means up to 25 LLM calls/user query at scale.
+  On Groq free tier (14,400 req/day) this is fine. In production, cache
+  or gate behind a latency budget.
+
+- Cross-encoder reranking was evaluated and removed: it silently dropped
+  relevant chunks when all scores fell below its internal threshold, producing
+  empty context and "not found" answers. Removal documented here so future
+  engineers don't re-add it without understanding the tradeoff.
 
 Import note — langchain v1
 --------------------------
@@ -93,6 +106,14 @@ _MAX_REPEAT_RATIO = 0.50   # drop if >50% of sentences are exact duplicates
 
 
 def _is_noisy_chunk(text: str) -> bool:
+    """
+    Return True if chunk should be dropped before indexing.
+
+    Three checks (in order of cheapness):
+      1. TOC dot-leader check — lines with 4+ consecutive dots = contents page filler
+      2. Short-token noise ratio — >60% tokens of length ≤2 signals figure/artifact text
+      3. Sentence repetition — >50% duplicate sentences signals caption repeated in PDF layer
+    """
     tokens = text.split()
     if not tokens:
         return True
@@ -145,15 +166,28 @@ def _clean_documents(docs):
 
 
 def get_doc_hash(file_bytes: bytes) -> str:
-    """MD5-based 8-char namespace key. Not used for security — deduplication only."""
+    """
+    MD5-based 8-char namespace key.
+
+    Used for Pinecone namespace deduplication only — not for security.
+    MD5 chosen for speed; collision probability is negligible for this use case.
+    Same bytes → same hash → same namespace → skip re-indexing.
+    Different PDF, same filename → different bytes → different hash → new namespace.
+    """
     return hashlib.md5(file_bytes).hexdigest()[:8]
 
 
 def get_embeddings() -> HuggingFaceEmbeddings:
     """
-    Load the HuggingFace embedding model.
+    Load the HuggingFace embedding model (all-MiniLM-L6-v2, 384 dimensions).
+
     Not decorated with @st.cache_resource — caller (app.py) handles caching.
     evaluate_pipeline.py passes embeddings explicitly to avoid re-loading.
+
+    Why all-MiniLM-L6-v2:
+    - Runs locally, no API key, no quota.
+    - 384 dims: fast similarity search, small Pinecone storage.
+    - OpenAI ada-002 produces 1536 dims — more expressive but costs money.
     """
     logger.info("Loading embedding model: %s", cfg.embedding_model)
     return HuggingFaceEmbeddings(model_name=cfg.embedding_model)
@@ -189,8 +223,10 @@ def _namespace_has_vectors(namespace: str) -> bool:
 def _wait_for_namespace(namespace: str, max_wait: int = 60) -> None:
     """
     Poll with exponential backoff until namespace is ready.
-    max_wait reduced to 60s — beyond that, something is genuinely wrong
-    and a clear error is more useful than a silent 90s freeze.
+
+    max_wait=60s — beyond that, something is genuinely wrong and a clear
+    error is more useful than a silent freeze. Replaced naive time.sleep(20)
+    which gave no feedback and had no upper bound on wait time.
     """
     start = time.monotonic()
     delay = 2
@@ -236,6 +272,12 @@ def build_pipeline(
         Runnable accepts {"query": str}.
         Returns {"result": str, "source_documents": list[Document]}.
         int is the number of chunks available (indexed or pre-existing).
+
+    Notes on retrieval cost
+    -----------------------
+    MultiQueryRetriever fires 3–5 LLM sub-queries per user query.
+    At k=5 that's up to 25 vector lookups. On Groq free tier this is fine.
+    At scale, gate behind latency budget or cache sub-query results.
     """
     if embeddings is None:
         embeddings = get_embeddings()
@@ -250,7 +292,6 @@ def build_pipeline(
             embedding=embeddings,
             namespace=doc_hash,
         )
-        # Read actual vector count so UI shows a meaningful number.
         try:
             stats = _get_pinecone_index().describe_index_stats()
             ns = stats.namespaces.get(doc_hash)
@@ -263,8 +304,6 @@ def build_pipeline(
         loader = PyMuPDFLoader(pdf_path)
         documents = loader.load()
 
-        # Detect scanned/image-only PDFs early — they produce near-empty text
-        # and would silently pass through chunking with zero useful content.
         avg_text_len = sum(len(d.page_content) for d in documents) / max(len(documents), 1)
         if avg_text_len < 50:
             raise ValueError(
@@ -280,7 +319,6 @@ def build_pipeline(
         texts = splitter.split_documents(documents)
         logger.info("Split into %d chunks before cleaning.", len(texts))
 
-        # Clean at index time only — not repeated on every query.
         texts, dropped = _clean_documents(texts)
         chunk_count = len(texts)
         logger.info("%d clean chunks will be indexed (%d dropped).", chunk_count, dropped)
@@ -308,7 +346,9 @@ def build_pipeline(
     )
 
     # ── Step 3: Retriever ─────────────────────────────────────────────────────
-    # that MMR alone retrieved topically similar but contextually less relevant
+    # MMR alone retrieved topically similar but contextually redundant chunks.
+    # MultiQueryRetriever wraps it: generates 3–5 query reformulations and
+    # takes the union — improving recall without sacrificing MMR diversity.
     base_retriever = vectordb.as_retriever(
         search_type="mmr",
         search_kwargs={"k": cfg.retriever_k, "fetch_k": cfg.retriever_fetch_k},

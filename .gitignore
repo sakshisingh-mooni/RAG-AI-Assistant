@@ -29,3 +29,7 @@ budget_speech.pdf
 .DS_Store
 Thumbs.db
 "sample_data/*.pdf" 
+
+# Test cache
+.pytest_cache/
+tests/__pycache__/
