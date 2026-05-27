@@ -1,0 +1,11 @@
+user_input,faithfulness,answer_relevancy,context_recall
+\,0.0,0.0,0.0
+Why does WHO recommend sulfonylurea over DPP-4 inhibitors and SGLT-2 inhibitors as second-line treatment for type 2 diabetes?,0.0,-0.0,0.0
+\,0.0,0.0,0.0
+Under what circumstances does WHO recommend considering long-acting insulin analogues instead of human insulin?,1.0,0.6612,1.0
+\,0.0,0.0,0.0
+What methodology did WHO use to assess the quality of evidence and develop the recommendations in these guidelines?,1.0,0.9945,1.0
+\,0.0,0.0,0.0
+What are the resource and cost considerations that influenced the insulin recommendations for low-resource settings?,1.0,0.9507,1.0
+\,0.0,,
+What groups of people are identified as the target audience for these guidelines?,,,
