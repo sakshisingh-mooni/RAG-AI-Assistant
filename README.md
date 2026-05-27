@@ -14,7 +14,7 @@ A production-quality **Retrieval-Augmented Generation (RAG)** system that lets u
 
 🚀 **Live Demo**: [Try it here](https://huggingface.co/spaces/Sakshisingh2710/RAG-AI-Assistant)
 
-🎥 **Demo video**: [Watch a full walkthrough](assets/demo.mp4) 
+🎥 **Demo Video**: [Watch full walkthrough](https://drive.google.com/file/d/17D2pkOJh5Qg0Q4BPW-9kk7QHkm64_rG2/view?usp=drive_link)
 
 > **Note:** Voice input (microphone) is disabled in the cloud demo — HuggingFace Spaces has no microphone access. Voice output (text-to-speech) and all multilingual text modes work fully in the live demo. Run locally to test voice input.
 
