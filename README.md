@@ -217,18 +217,20 @@ After diagnosing that poor question design was masking pipeline quality, questio
 
 | Question | Faithfulness | Answer Relevancy | Context Recall |
 |---|---|---|---|
-| When to consider long-acting insulin analogues | 1.00 | 0.66 | 1.00 |
-| GRADE methodology used for evidence assessment | 1.00 | 0.99 | 1.00 |
-| Resource and cost considerations for insulin in low-resource settings | 1.00 | 0.95 | 1.00 |
-| **Mean** | **1.00** | **0.87** | **1.00** |
+| When to consider long-acting insulin analogues | 1.00 | 0.45 | 1.00 |
+| GRADE methodology used for evidence assessment | 1.00 | 0.79 | 1.00 |
+| Resource and cost considerations for insulin in low-resource settings | 1.00 | 0.83 | 1.00 |
+| **Mean** | **1.00** | **0.69** | **1.00** |
 
 **Current config** ✅: `chunk_size=1000`, `chunk_overlap=100`, `k=5`, `fetch_k=20`.
 
 | Metric | Score | Threshold | Status |
 |---|---|---|---|
 | Faithfulness | 1.00 | > 0.80 | ✅ Pass |
-| Answer Relevancy | 0.87 | > 0.80 | ✅ Pass |
+| Answer Relevancy | 0.69 | > 0.80 | ⚠️ Marginal |
 | Context Recall | 1.00 | > 0.70 | ✅ Pass |
+
+> **Note on answer relevancy variance:** Answer relevancy is scored by an LLM-as-judge on the Groq free tier, which introduces stochasticity between runs. Q1 ("When to consider long-acting insulin analogues") in particular shows variance (0.45–0.66 across runs) likely because the document's answer is a nuanced clinical condition rather than a direct factual statement, making relevancy harder for the judge to score consistently. Faithfulness and Context Recall are stable at 1.00 across all runs.
 
 ---
 
